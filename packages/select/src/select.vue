@@ -11,21 +11,15 @@
       :style="{ 'max-width': inputWidth - 32 + 'px', width: '100%' }">
       <span v-if="collapseTags && selected.length">
         <el-tag
-          :closable="!selectDisabled"
+          v-for="tag in presentTags"
+          :key="getValueKey(tag)"
+          :closable="tag.closable"
           :size="collapseTagSize"
-          :hit="selected[0].hitState"
+          :hit="false"
           type="info"
-          @close="deleteTag($event, selected[0])"
+          @close="deleteTag($event, tag)"
           disable-transitions>
-          <span class="el-select__tags-text">{{ selected[0].currentLabel }}</span>
-        </el-tag>
-        <el-tag
-          v-if="selected.length > 1"
-          :closable="false"
-          :size="collapseTagSize"
-          type="info"
-          disable-transitions>
-          <span class="el-select__tags-text">+ {{ selected.length - 1 }}</span>
+          <span class="el-select__tags-text">{{ tag.currentLabel }}</span>
         </el-tag>
       </span>
       <transition-group @after-leave="resetInputHeight" v-if="!collapseTags">
@@ -239,6 +233,27 @@
       },
       propPlaceholder() {
         return typeof this.placeholder !== 'undefined' ? this.placeholder : this.t('el.select.placeholder');
+      },
+
+      presentTags() {
+        if (this.multiple && this.collapseTags) {
+          const tags = this.selected.slice(0, this.showTagMaxNumber);
+          const rest = this.selected.slice(this.showTagMaxNumber);
+
+          if (rest.length > 0) {
+            tags.push({
+              value: '-1',
+              currentLabel: `+ ${rest.length}`,
+              closable: false,
+              hitState: false
+            });
+          }
+
+          return tags;
+
+        } else {
+          return [];
+        }
       }
     },
 
@@ -304,6 +319,13 @@
       popperAppendToBody: {
         type: Boolean,
         default: true
+      },
+      showTagMaxNumber: {
+        type: Number,
+        default: 1,
+        validator: function validator(val) {
+          return val >= 1;
+        }
       }
     },
 
@@ -335,6 +357,12 @@
     },
 
     watch: {
+      presentTags() {
+        this.$nextTick(() => {
+          this.resetInputHeight();
+        });
+      },
+
       selectDisabled() {
         this.$nextTick(() => {
           this.resetInputHeight();
@@ -648,7 +676,6 @@
       },
 
       resetInputHeight() {
-        if (this.collapseTags && !this.filterable) return;
         this.$nextTick(() => {
           if (!this.$refs.reference) return;
           let inputChildNodes = this.$refs.reference.$el.childNodes;

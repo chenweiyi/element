@@ -295,11 +295,6 @@
 
       highlightCurrentRow: Boolean,
 
-      highlightSelectionRow: {
-        type: Boolean,
-        default: false
-      },
-
       currentRowKey: [String, Number],
 
       emptyText: String,

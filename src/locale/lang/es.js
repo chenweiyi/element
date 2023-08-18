@@ -2,7 +2,7 @@ export default {
   el: {
     colorpicker: {
       confirm: 'Confirmar',
-      clear: 'Limpiar'
+      clear: 'Despejar'
     },
     datepicker: {
       now: 'Ahora',
