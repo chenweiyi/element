@@ -58,6 +58,7 @@
         v-if="filterable && !isDisabled"
         v-model.trim="inputValue"
         type="text"
+        ref="search-input"
         class="el-cascader__search-input"
         :placeholder="presentTags.length ? '' : placeholder"
         @input="e => handleInput(inputValue, e)"
@@ -226,7 +227,14 @@ export default {
       type: Function,
       default: () => (() => {})
     },
-    popperClass: String
+    popperClass: String,
+    showTagMaxNumber: {
+      type: Number,
+      default: 1,
+      validator: function validator(val) {
+        return val >= 1;
+      }
+    }
   },
 
   data() {
@@ -342,6 +350,14 @@ export default {
     },
     filtering(val) {
       this.$nextTick(this.updatePopper);
+    },
+    filterable() {
+      if (this.multiple) {
+        this.$nextTick(() => {
+          this.updateStyle();
+          this.dropDownVisible && this.$refs['search-input'].focus();
+        });
+      }
     }
   },
 
@@ -520,9 +536,9 @@ export default {
       });
 
       if (checkedNodes.length) {
-        const [first, ...rest] = checkedNodes;
+        checkedNodes.slice(0, this.showTagMaxNumber).forEach(node => tags.push(genTag(node)));
+        const rest = checkedNodes.slice(this.showTagMaxNumber);
         const restCount = rest.length;
-        tags.push(genTag(first));
 
         if (restCount) {
           if (collapseTags) {
